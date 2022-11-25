@@ -63,15 +63,18 @@ $app->get('/api/hello/{name}', function (Request $request, Response $response, $
     return $response;
 });
 
-$app->get('/api/login/{login}/{password}', function (Request $request, Response $response, $args) {
+$app->get('/api/login', function (Request $request, Response $response, $args) {
+
+    $inputJSON = file_get_contents('php://input');
+    $body = json_decode( $inputJSON, TRUE ); //convert JSON into array 
     $token_jwt = JWT::encode(getPayload(), JWT_SECRET, "HS256");
 	
-	if(!isset($args['login']) || !isset($args['password']) ){
+	if(!isset($body['login']) || !isset($body['password']) ){
         $data = array('ERREUR' => 'Connexion', 'ERREUR' => 'You must provide a login and a password');
         $response = $response->withStatus(401);
         $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
 	}	
-    else if($args['login'] != 'admin' || $args['password'] != 'admin'){
+    else if($body['login'] != 'admin' || $body['password'] != 'admin'){
         $data = array('ERREUR' => 'Connexion', 'ERREUR' => 'wrong login and password');
         $response = $response->withStatus(401);
         $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
