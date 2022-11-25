@@ -28,6 +28,34 @@ function getPayload()
     );
 }
 
+$options = [
+    "attribute" => "token",
+    "header" => "Authorization",
+    "regexp" => "/Bearer\s+(.*)$/i",
+    "secure" => false,
+    "algorithm" => ["HS256"],
+    "secret" => JWT_SECRET,
+    "path" => ["/api"],
+    "ignore" => ["/api/hello", "/api/login"],
+    "error" => function ($response, $arguments) {
+        $data = array('ERREUR' => 'Connexion', 'ERREUR' => 'JWT Non valide');
+        $response = $response->withStatus(401);
+        return $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
+    }
+];
+
+function addHeaders (Response $response) : Response {
+    $response = $response
+    ->withHeader("Content-Type", "application/json")
+    ->withHeader('Access-Control-Allow-Origin', 'http://localhost:4200, https://tp05-florian-metz.onrender.com')
+    ->withHeader('Access-Control-Allow-Headers', 'Content-Type,  Authorization')
+    ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+    ->withHeader('Access-Control-Expose-Headers', 'Authorization');
+
+    return $response;
+}
+
+
 $app->get('/api/hello/{name}', function (Request $request, Response $response, $args) {
     $array = [];
     $array["nom"] = $args['name'];
@@ -61,33 +89,6 @@ $app->get('/api/user', function (Request $request, Response $response, $args) {
 
     return $response;
 });
-
-$options = [
-    "attribute" => "token",
-    "header" => "Authorization",
-    "regexp" => "/Bearer\s+(.*)$/i",
-    "secure" => false,
-    "algorithm" => ["HS256"],
-    "secret" => JWT_SECRET,
-    "path" => ["/api"],
-    "ignore" => ["/api/hello", "/api/login"],
-    "error" => function ($response, $arguments) {
-        $data = array('ERREUR' => 'Connexion', 'ERREUR' => 'JWT Non valide');
-        $response = $response->withStatus(401);
-        return $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
-    }
-];
-
-function  addHeaders (Response $response) : Response {
-    $response = $response
-    ->withHeader("Content-Type", "application/json")
-    ->withHeader('Access-Control-Allow-Origin', 'http://localhost:4200, https://tp05-florian-metz.onrender.com')
-    ->withHeader('Access-Control-Allow-Headers', 'Content-Type,  Authorization')
-    ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
-    ->withHeader('Access-Control-Expose-Headers', 'Authorization');
-
-    return $response;
-}
 
 #region products
 
