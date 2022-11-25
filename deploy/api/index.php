@@ -47,7 +47,7 @@ $options = [
 function addHeaders (Response $response) : Response {
     $response = $response
     ->withHeader("Content-Type", "application/json")
-    ->withHeader('Access-Control-Allow-Origin', 'http://localhost:4200, https://tp05-florian-metz.onrender.com')
+    ->withHeader('Access-Control-Allow-Origin', 'http://localhost:4200, https://met-02-florian-metz.onrender.com')
     ->withHeader('Access-Control-Allow-Headers', 'Content-Type,  Authorization')
     ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
     ->withHeader('Access-Control-Expose-Headers', 'Authorization');
