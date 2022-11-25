@@ -1,32 +1,33 @@
 <?php
-
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Factory\AppFactory;
 use Tuupola\Middleware\HttpBasicAuthentication;
 use \Firebase\JWT\JWT;
-
 require __DIR__ . '/../vendor/autoload.php';
-
+ 
 const JWT_SECRET = "makey1234567";
 
 $app = AppFactory::create();
 
-function getPayload()
-{
+//create JWT
+function createJWT(Response $response): Response{
+
     $issuedAt = time();
-    $expirationTime = $issuedAt + 600;
-    $userid = 1;
-    $email = "test@admin.com";
-    $pseudo = "XX_Shadow_XX";
-    return array(
-        'userid' => $userid,
-        'email' => $email,
-        'pseudo' => $pseudo,
+    $expirationTime = $issuedAt + 60000;
+    $payload = array(
+        'userid' => '1',
+        'email' => 'fannyeber@gmail.com',
+        'pseudo' => 'pandabrutie',
         'iat' => $issuedAt,
         'exp' => $expirationTime
     );
+    $token_jwt = JWT::encode($payload, JWT_SECRET, "HS256");
+    $response = $response->withHeader("Authorization", "Bearer {$token_jwt}");
+    
+    return $response;
 }
+
 
 $options = [
     "attribute" => "token",
@@ -44,10 +45,11 @@ $options = [
     }
 ];
 
-function addHeaders (Response $response) : Response {
+
+function  addHeaders (Response $response) : Response {
     $response = $response
     ->withHeader("Content-Type", "application/json")
-    ->withHeader('Access-Control-Allow-Origin', 'http://localhost:4200, https://tp05-florian-metz.onrender.com')
+    ->withHeader('Access-Control-Allow-Origin', ('https://met02-eber.onrender.com'))
     ->withHeader('Access-Control-Allow-Headers', 'Content-Type,  Authorization')
     ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
     ->withHeader('Access-Control-Expose-Headers', 'Authorization');
@@ -55,48 +57,53 @@ function addHeaders (Response $response) : Response {
     return $response;
 }
 
+#region USER 
 
-$app->get('/api/hello/{name}', function (Request $request, Response $response, $args) {
-    $array = [];
-    $array["nom"] = $args['name'];
-    $response->getBody()->write(json_encode($array));
-    $response = addHeaders($response);
-    return $response;
-});
-
-$app->post('/api/login', function (Request $request, Response $response, $args) {
-
+//login
+$app->post('/api/login', function (Request $request, Response $response, $args) {   
+    $err=false;
     $inputJSON = file_get_contents('php://input');
     $body = json_decode( $inputJSON, TRUE ); //convert JSON into array 
-    $token_jwt = JWT::encode(getPayload(), JWT_SECRET, "HS256");
-    $response = addHeaders($response);
-	
-	if(!isset($body['login']) || !isset($body['password']) ){
-        $data = array('ERREUR' => 'Connexion', 'ERREUR' => 'You must provide a login and a password');
-        $response = $response->withStatus(401);
-        $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
-	}	
-    else if($body['login'] != 'admin' || $body['password'] != 'admin'){
-        $data = array('ERREUR' => 'Connexion', 'ERREUR' => 'wrong login and password');
-        $response = $response->withStatus(401);
-        $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
+    $login = $body['login'] ?? ""; 
+    $password = $body['password'] ?? "";
+
+    //check format login and password
+    if (empty($login) || empty($password)|| !preg_match("/^[a-zA-Z0-9]+$/", $login) || !preg_match("/^[a-zA-Z0-9]+$/", $password)) {
+        $err=true;
     }
-	else{
-        $response = $response->withHeader("Authorization", "Bearer {$token_jwt}");
+ 
+    if (!$err) {
+        $response = createJwT($response);
+        $response = addHeaders($response);
+        $data = array('login' => $login);
+        $response->getBody()->write(json_encode($data));
     }
-	
+    else{          
+        $response = $response->withStatus(401);
+    }
     return $response;
 });
 
+//hello
+$app->get('/api/hello/{name}', function (Request $request, Response $response, $args) {
+    $array = [];
+    $array ["nom"] = $args ['name'];
+    $response->getBody()->write(json_encode ($array));
+    return $response;
+});
+
+//get user 
 $app->get('/api/user', function (Request $request, Response $response, $args) {
-    $data = array('nom' => 'toto', 'prenom' => 'titi', 'adresse' => '6 rue des fleurs', 'tel' => '0606060607');
-    $response->getBody()->write(json_encode($data));
+    $array = [];
+    $array ["nom"] = "Eber";
+    $array ["prenom"] = "Fanny";
     $response = addHeaders($response);
-
+    $response->getBody()->write(json_encode ($array));
     return $response;
 });
+#endregion
 
-#region products
+#region PRODUCTS
 
 //get all product from ./mock/products.json
 $app->get('/api/product', function (Request $request, Response $response, $args) {
@@ -119,5 +126,7 @@ $app->get('/api/product/{id}', function (Request $request, Response $response, $
 
 #endregion
 
+#endregion
 $app->add(new Tuupola\Middleware\JwtAuthentication($options));
-$app->run();
+
+$app->run ();
