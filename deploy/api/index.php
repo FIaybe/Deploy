@@ -60,6 +60,7 @@ $app->get('/api/hello/{name}', function (Request $request, Response $response, $
     $array = [];
     $array["nom"] = $args['name'];
     $response->getBody()->write(json_encode($array));
+    $response = addHeaders($response);
     return $response;
 });
 
@@ -68,6 +69,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     $inputJSON = file_get_contents('php://input');
     $body = json_decode( $inputJSON, TRUE ); //convert JSON into array 
     $token_jwt = JWT::encode(getPayload(), JWT_SECRET, "HS256");
+    $response = addHeaders($response);
 	
 	if(!isset($body['login']) || !isset($body['password']) ){
         $data = array('ERREUR' => 'Connexion', 'ERREUR' => 'You must provide a login and a password');
@@ -89,6 +91,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
 $app->get('/api/user', function (Request $request, Response $response, $args) {
     $data = array('nom' => 'toto', 'prenom' => 'titi', 'adresse' => '6 rue des fleurs', 'tel' => '0606060607');
     $response->getBody()->write(json_encode($data));
+    $response = addHeaders($response);
 
     return $response;
 });
