@@ -78,11 +78,23 @@ $options = [
     }
 ];
 
+function  addHeaders (Response $response) : Response {
+    $response = $response
+    ->withHeader("Content-Type", "application/json")
+    ->withHeader('Access-Control-Allow-Origin', ('https://met02-eber.onrender.com'))
+    ->withHeader('Access-Control-Allow-Headers', 'Content-Type,  Authorization')
+    ->withHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS')
+    ->withHeader('Access-Control-Expose-Headers', 'Authorization');
+
+    return $response;
+}
+
 #region products
 
 //get all product from ./mock/products.json
 $app->get('/api/product', function (Request $request, Response $response, $args) {
     $json = file_get_contents("./mock/products.json");
+    $response = addHeaders($response);
     $response->getBody()->write($json);
     return $response;
 });
@@ -93,6 +105,7 @@ $app->get('/api/product/{id}', function (Request $request, Response $response, $
     $array = json_decode($json, true);
     $id = $args ['id'];
     $array = $array[$id];
+    $response = addHeaders($response);
     $response->getBody()->write(json_encode ($array));
     return $response;
 });
