@@ -35,11 +35,23 @@ $app->get('/api/hello/{name}', function (Request $request, Response $response, $
     return $response;
 });
 
-$app->get('/api/login', function (Request $request, Response $response, $args) {
+$app->get('/api/login/{login}/{password}', function (Request $request, Response $response, $args) {
     $token_jwt = JWT::encode(getPayload(), JWT_SECRET, "HS256");
-
-    $response = $response->withHeader("Authorization", "Bearer {$token_jwt}");
-
+	
+	if(!isset($args['login']) || !isset($args['password']) ){
+        $data = array('ERREUR' => 'Connexion', 'ERREUR' => 'You must provide a login and a password');
+        $response = $response->withStatus(401);
+        $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
+	}	
+    else if($args['login'] != 'admin' || $args['password'] != 'admin'){
+        $data = array('ERREUR' => 'Connexion', 'ERREUR' => 'wrong login and password');
+        $response = $response->withStatus(401);
+        $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
+    }
+	else{
+        $response = $response->withHeader("Authorization", "Bearer {$token_jwt}");
+    }
+	
     return $response;
 });
 
@@ -65,6 +77,27 @@ $options = [
         return $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
     }
 ];
+
+#region products
+
+//get all product from ./mock/products.json
+$app->get('/api/product', function (Request $request, Response $response, $args) {
+    $json = file_get_contents("./mock/products.json");
+    $response->getBody()->write($json);
+    return $response;
+});
+
+//get product by id from ./mock/products.json
+$app->get('/api/product/{id}', function (Request $request, Response $response, $args) {
+    $json = file_get_contents("./mock/products.json");
+    $array = json_decode($json, true);
+    $id = $args ['id'];
+    $array = $array[$id];
+    $response->getBody()->write(json_encode ($array));
+    return $response;
+});
+
+#endregion
 
 $app->add(new Tuupola\Middleware\JwtAuthentication($options));
 $app->run();
