@@ -101,7 +101,7 @@ $app->get('/api/product/{id}', function (Request $request, Response $response, $
 });
 
 //get product by term from ./mock/products.json
-$app->get('/api/product/{term}', function (Request $request, Response $response, $args) {
+$app->get('/api/product/term/{term}', function (Request $request, Response $response, $args) {
     $json = file_get_contents("./mock/products.json");
     $array = json_decode($json, true);
     $id = $args ['term'];
