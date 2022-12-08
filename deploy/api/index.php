@@ -100,6 +100,21 @@ $app->get('/api/product/{id}', function (Request $request, Response $response, $
     return $response;
 });
 
+//get product by term from ./mock/products.json
+$app->get('/api/product/{term}', function (Request $request, Response $response, $args) {
+    $json = file_get_contents("./mock/products.json");
+    $array = json_decode($json, true);
+    $id = $args ['term'];
+    $newArray = [];
+    foreach ($array as $key => $value) {
+        if (strpos($value['name'], $id) !== false || strpos($value['description'], $id) !== false) {
+            $newArray[] = $value;
+        }
+    }
+    $response->getBody()->write(json_encode ($array));
+    return $response;
+});
+
 #endregion
 
 $app->add(new Tuupola\Middleware\JwtAuthentication($options));
