@@ -7,6 +7,7 @@ use Tuupola\Middleware\HttpBasicAuthentication;
 use \Firebase\JWT\JWT;
 
 require __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 const JWT_SECRET = "makey1234567";
 
@@ -52,17 +53,19 @@ $app->get('/api/hello/{name}', function (Request $request, Response $response, $
 });
 
 $app->post('/api/login', function (Request $request, Response $response, $args) {
-
+    global $entityManager;
     $inputJSON = file_get_contents('php://input');
     $body = json_decode( $inputJSON, TRUE ); //convert JSON into array 
     $token_jwt = JWT::encode(getPayload(), JWT_SECRET, "HS256");
+
+    $user = $entityManager->getRepository('Client')->findOneBy(array('login' => $body['login'], 'password' => $body['password']));
 	
 	if(!isset($body['login']) || !isset($body['password']) ){
         $data = array('ERREUR' => 'Connexion', 'ERREUR' => 'You must provide a login and a password');
         $response = $response->withStatus(401);
         $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
 	}	
-    else if($body['login'] != 'admin' || $body['password'] != 'admin'){
+    else if(!($utilisateur and $login == $utilisateur->getLogin() and $pass == $utilisateur->getPassword())){
         $data = array('ERREUR' => 'Connexion', 'ERREUR' => 'wrong login and password');
         $response = $response->withStatus(401);
         $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
@@ -85,8 +88,8 @@ $app->get('/api/user', function (Request $request, Response $response, $args) {
 
 //get all product from ./mock/products.json
 $app->get('/api/product', function (Request $request, Response $response, $args) {
-    $json = file_get_contents("./mock/products.json");
-    $response->getBody()->write($json);
+    $products = $entityManager->getRepository('Product')->findAll();
+    $response->getBody()->write($products);
     return $response;
 });
 
