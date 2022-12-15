@@ -91,7 +91,16 @@ $app->get('/api/user', function (Request $request, Response $response, $args) {
 $app->get('/api/product', function (Request $request, Response $response, $args) {
     global $entityManager;
     $products = $entityManager->getRepository('Product')->findAll();
-    $response->getBody()->write($products);
+    $data = array();
+    foreach ($products as $product) {
+        $data[] = array(
+            'id' => $product->getId(),
+            'name' => $product->getName(),
+            'description' => $product->getDescription(),
+            'price' => $product->getPrice(),
+        );
+    }
+    $response->getBody()->write($data);
     return $response;
 });
 
