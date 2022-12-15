@@ -87,7 +87,7 @@ $app->get('/api/user', function (Request $request, Response $response, $args) {
 
 #region products
 
-//get all product from ./mock/products.json
+//get all product from ./mock/products.json   a
 $app->get('/api/product', function (Request $request, Response $response, $args) {
     $products = $entityManager->getRepository('Product')->findAll();
     $response->getBody()->write($products);
