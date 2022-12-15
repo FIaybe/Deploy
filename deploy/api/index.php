@@ -11,8 +11,6 @@ require_once __DIR__ . '/../bootstrap.php';
 
 const JWT_SECRET = "makey1234567";
 
-global $entityManager;
-
 $app = AppFactory::create();
 
 function getPayload()
@@ -55,6 +53,7 @@ $app->get('/api/hello/{name}', function (Request $request, Response $response, $
 });
 
 $app->post('/api/login', function (Request $request, Response $response, $args) {
+    global $entityManager;
     $inputJSON = file_get_contents('php://input');
     $body = json_decode( $inputJSON, TRUE ); //convert JSON into array 
     $token_jwt = JWT::encode(getPayload(), JWT_SECRET, "HS256");
@@ -90,6 +89,7 @@ $app->get('/api/user', function (Request $request, Response $response, $args) {
 
 //get all product from ./mock/products.json   a
 $app->get('/api/product', function (Request $request, Response $response, $args) {
+    global $entityManager;
     $products = $entityManager->getRepository('product')->findAll();
     $data = array();
     foreach ($products as $product) {
