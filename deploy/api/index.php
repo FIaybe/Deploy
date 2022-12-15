@@ -66,7 +66,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
         $response = $response->withStatus(401);
         $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
 	}	
-    else if(!($utilisateur and $login == $utilisateur->getLogin() and $pass == $utilisateur->getPassword())){
+    else if(!($utilisateur and $login == $utilisateur['login'] and $pass == $utilisateur['password'])){
         $data = array('ERREUR' => 'Connexion', 'ERREUR' => 'wrong login and password');
         $response = $response->withStatus(401);
         $response->withHeader("Content-Type", "application/json")->getBody()->write(json_encode($data));
