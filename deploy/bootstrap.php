@@ -6,7 +6,7 @@ require_once "vendor/autoload.php";
 $isDevMode = true;
 $config = Setup::createYAMLMetadataConfiguration(array(__DIR__ . "/config/yaml"), $isDevMode);
 $conn = array(
-'host' => 'host',
+'host' => 'dpg-cedia294reb89442kbn0-a',
 'driver' => 'pdo_pgsql',
 'user' => 'met02',
 'password' => 'ic28JHuK79T512h5vXeYwpHABQ4w7Ce0',
