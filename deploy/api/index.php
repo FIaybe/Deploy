@@ -90,7 +90,7 @@ $app->get('/api/user', function (Request $request, Response $response, $args) {
 //get all product from ./mock/products.json   a
 $app->get('/api/product', function (Request $request, Response $response, $args) {
     global $entityManager;
-    $products = $entityManager->getRepository('product')->findAll();
+    $products = $entityManager->getRepository('Product')->findAll();
     $data = array();
     foreach ($products as $product) {
         $data[] = array(
