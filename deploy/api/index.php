@@ -58,7 +58,7 @@ $app->post('/api/login', function (Request $request, Response $response, $args) 
     $body = json_decode( $inputJSON, TRUE ); //convert JSON into array 
     $token_jwt = JWT::encode(getPayload(), JWT_SECRET, "HS256");
 
-    $user = $entityManager->getRepository('public.Client')->findOneBy(array('login' => $body['login'], 'password' => $body['password']));
+    $user = $entityManager->getRepository('""public"".""Client""')->findOneBy(array('login' => $body['login'], 'password' => $body['password']));
 	
 	if(!isset($body['login']) || !isset($body['password']) ){
         $data = array('ERREUR' => 'Connexion', 'ERREUR' => 'You must provide a login and a password');
