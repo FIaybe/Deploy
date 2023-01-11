@@ -91,41 +91,140 @@ $app->get('/api/user', function (Request $request, Response $response, $args) {
 $app->get('/api/product', function (Request $request, Response $response, $args) {
     global $entityManager;
     $products = $entityManager->getRepository('Product')->findAll();
-    $data = array();
-    foreach ($products as $product) {
-        $data[] = array(
-            'id' => $product->getId(),
-            'name' => $product->getName(),
-            'description' => $product->getDescription(),
-            'price' => $product->getPrice(),
-        );
-    }
-    $response->getBody()->write($data);
+    $response->getBody()->write($products);
     return $response;
 });
 
-//get product by id from ./mock/products.json
+//get product by id
 $app->get('/api/product/{id}', function (Request $request, Response $response, $args) {
-    $json = file_get_contents("./mock/products.json");
-    $array = json_decode($json, true);
-    $id = $args ['id'];
-    $array = $array[$id];
+    global $entityManager;
+    $product = $entityManager->getRepository('Product')->findOneBy(array('id' => $args['id']));
     $response->getBody()->write(json_encode ($array));
     return $response;
 });
 
-//get product by term from ./mock/products.json
+//get product by term 
 $app->get('/api/product/term/{term}', function (Request $request, Response $response, $args) {
-    $json = file_get_contents("./mock/products.json");
-    $array = json_decode($json, true);
+    global $entityManager;
+    $products = $entityManager->getRepository('Product')->findAll();
     $id = $args ['term'];
     $newArray = [];
-    foreach ($array as $key => $value) {
+    foreach ($products as $key => $value) {
         if (strpos($value['name'], $id) !== false || strpos($value['description'], $id) !== false) {
             $newArray[] = $value;
         }
     }
-    $response->getBody()->write(json_encode ($array));
+    $response->getBody()->write(json_encode ($newArray));
+    return $response;
+});
+
+
+$app->post('/api/product', function (Request $request, Response $response, $args) {
+    $inputJSON = file_get_contents('php://input');
+    $body = json_decode( $inputJSON, TRUE ); 
+    $id = $body ['id'] ?? "";
+    $name = $body ['name'] ?? ""; 
+    $description = $body ['description'] ?? "";
+    $price = $body ['price'] ?? "";
+    $err=false;
+
+    //check format name, price, description
+    if (empty($name) || empty($price) || empty($description) || 
+    !preg_match("/^[a-zA-Z0-9]+$/", $name) || !preg_match("/^[0-9]+$/", $price) ||
+    !preg_match("/^[a-zA-Z0-9]+$/", $description)) {
+        $err=true;
+    }
+
+    if (!$err) {
+        global $entityManager;
+        $product = new Product;
+        $product->setName($name);
+        $product->setPrice($price);
+        $product->setDescription($description);
+        $entityManager->persist($product);
+        $entityManager->flush();
+        $response->getBody()->write(json_encode ($product));
+    }
+    else{          
+        $response = $response->withStatus(401);
+    }
+    return $response;
+});
+
+#endregion
+
+#region client
+
+//get all client
+$app->get('/api/client', function (Request $request, Response $response, $args) {
+    global $entityManager;
+    $clients = $entityManager->getRepository('Client')->findAll();
+    $response->getBody()->write(json_encode($clients));
+    return $response;
+});
+
+//get client by id
+$app->get('/api/client/{id}', function (Request $request, Response $response, $args) {
+    global $entityManager;
+    $client = $entityManager->getRepository('Client')->findOneBy(array('id' => $args['id']));
+    $response->getBody()->write(json_encode ($client));
+    return $response;
+});
+
+
+//add client
+$app->post('/api/client', function (Request $request, Response $response, $args) {
+    $inputJSON = file_get_contents('php://input');
+    $body = json_decode( $inputJSON, TRUE );
+    $lastName = $body ['lastname'] ?? ""; 
+    $firstName = $body ['firstname'] ?? "";
+    $email = $body ['email'] ?? "";
+    $phone = $body ['phone'] ?? "";
+    $address = $body ['address'] ?? "";
+    $city = $body ['city'] ?? "";
+    $zipcode = $body ['zipcode'] ?? "";
+    $country = $body ['country'] ?? "";
+    $login = $body ['login'] ?? "";
+    $password = $body ['password'] ?? "";
+    $gender = $body ['gender'] ?? "";
+    $err=false;
+    
+    if (!$err) {
+        global $entityManager;
+        $client = new Client;
+        $client->setLastname($lastName);
+        $client->setFirstname($firstName);
+        $client->setEmail($email);
+        $client->setPhone($phone);
+        $client->setAddress($address);
+        $client->setCity($city);
+        $client->setZipcode($zipcode);
+        $client->setCountry($country);
+        $client->setLogin($login);
+        $client->setPassword($password);
+        $client->setGender($gender);
+        $entityManager->persist($client);
+        $entityManager->flush();
+        $response = addHeaders($response);
+        $response->getBody()->write(json_encode ($client));
+    }
+    else{          
+        //401 with error message
+        $response = $response->withStatus(401);
+        $response->getBody()->write(json_encode ($err));
+
+    }
+    return $response;
+});
+
+//delete client
+$app->delete('/api/client/{id}', function (Request $request, Response $response, $args) {
+    $id = $args ['id'];
+    global $entityManager;
+    $client = $entityManager->find('Client', $id);
+    $entityManager->remove($client);
+    $entityManager->flush();
+    $response->getBody()->write(json_encode ($client));
     return $response;
 });
 
